@@ -5,6 +5,27 @@ import { useRouter } from "next/navigation";
 import BottomNav from "@/components/BottomNav";
 import Avatar from "@/components/Avatar";
 
+const INTEREST_OPTIONS = [
+  "Music", "Cooking", "Sports", "Reading", "Travel",
+  "Photography", "Volunteering", "Art", "Technology", "Fitness",
+  "Movies", "Gardening", "Writing", "Business",
+];
+
+const EDUCATION_OPTIONS = [
+  { value: "high_school", label: "High School" },
+  { value: "diploma", label: "Diploma" },
+  { value: "bachelors", label: "Bachelor's" },
+  { value: "masters", label: "Master's" },
+  { value: "doctorate", label: "Doctorate" },
+];
+
+const FELLOWSHIP_OPTIONS = [
+  { value: "1", label: "~1 year" },
+  { value: "2-3", label: "2-3 years" },
+  { value: "4-5", label: "4-5 years" },
+  { value: "6+", label: "6+ years" },
+];
+
 export default function AddYouthPage() {
   const router = useRouter();
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -20,7 +41,13 @@ export default function AddYouthPage() {
     occupation: "",
     bio: "",
     registeredBy: "",
+    educationLevel: "",
+    minAgePref: "",
+    maxAgePref: "",
+    branchPref: "any",
+    fellowship: "",
   });
+  const [selectedInterests, setSelectedInterests] = useState<string[]>([]);
   const [photoUrl, setPhotoUrl] = useState<string | null>(null);
   const [photoPreview, setPhotoPreview] = useState<string | null>(null);
   const [uploading, setUploading] = useState(false);
@@ -48,6 +75,14 @@ export default function AddYouthPage() {
     setUploading(false);
   };
 
+  const toggleInterest = (interest: string) => {
+    setSelectedInterests((prev) =>
+      prev.includes(interest)
+        ? prev.filter((i) => i !== interest)
+        : [...prev, interest]
+    );
+  };
+
   const handleSubmit = async () => {
     setError("");
     if (!form.firstName || !form.lastName || !form.dateOfBirth || !form.branch || !form.registeredBy) {
@@ -59,7 +94,11 @@ export default function AddYouthPage() {
       const res = await fetch("/api/youth", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ ...form, photoUrl }),
+        body: JSON.stringify({
+          ...form,
+          photoUrl,
+          interests: selectedInterests.length > 0 ? selectedInterests.join(",") : null,
+        }),
       });
       if (res.ok) router.push("/");
       else setError("Save failed");
@@ -151,7 +190,7 @@ export default function AddYouthPage() {
         </div>
       )}
 
-      {/* Personal Info Group */}
+      {/* Personal Info */}
       <SectionLabel>Personal Information</SectionLabel>
       <div className="ios-list ios-list-inset" style={{ marginBottom: 24 }}>
         <FormRow label="First Name" required>
@@ -169,12 +208,25 @@ export default function AddYouthPage() {
         <FormRow label="Birthday" required>
           <input className="ios-field" type="date" style={{ textAlign: "right", color: "#007AFF" }} value={form.dateOfBirth} onChange={(e) => set("dateOfBirth", e.target.value)} />
         </FormRow>
-        <FormRow label="Occupation" last>
+        <FormRow label="Occupation">
           <input className="ios-field" style={{ textAlign: "right" }} value={form.occupation} onChange={(e) => set("occupation", e.target.value)} placeholder="Optional" />
+        </FormRow>
+        <FormRow label="Education" last>
+          <select
+            className="ios-field"
+            style={{ textAlign: "right", color: form.educationLevel ? "#000" : "rgba(60,60,67,0.3)", appearance: "none" }}
+            value={form.educationLevel}
+            onChange={(e) => set("educationLevel", e.target.value)}
+          >
+            <option value="">Select</option>
+            {EDUCATION_OPTIONS.map((o) => (
+              <option key={o.value} value={o.value}>{o.label}</option>
+            ))}
+          </select>
         </FormRow>
       </div>
 
-      {/* Contact Group */}
+      {/* Contact */}
       <SectionLabel>Contact</SectionLabel>
       <div className="ios-list ios-list-inset" style={{ marginBottom: 24 }}>
         <FormRow label="Phone">
@@ -185,14 +237,90 @@ export default function AddYouthPage() {
         </FormRow>
       </div>
 
-      {/* Church Group */}
+      {/* Church */}
       <SectionLabel>Church Details</SectionLabel>
       <div className="ios-list ios-list-inset" style={{ marginBottom: 24 }}>
         <FormRow label="Branch" required>
           <input className="ios-field" style={{ textAlign: "right" }} value={form.branch} onChange={(e) => set("branch", e.target.value)} placeholder="Required" />
         </FormRow>
+        <FormRow label="Fellowship">
+          <select
+            className="ios-field"
+            style={{ textAlign: "right", color: form.fellowship ? "#000" : "rgba(60,60,67,0.3)", appearance: "none" }}
+            value={form.fellowship}
+            onChange={(e) => set("fellowship", e.target.value)}
+          >
+            <option value="">Select</option>
+            {FELLOWSHIP_OPTIONS.map((o) => (
+              <option key={o.value} value={o.value}>{o.label}</option>
+            ))}
+          </select>
+        </FormRow>
         <FormRow label="Registered By" required last>
           <input className="ios-field" style={{ textAlign: "right" }} value={form.registeredBy} onChange={(e) => set("registeredBy", e.target.value)} placeholder="Elder/Pastor" />
+        </FormRow>
+      </div>
+
+      {/* Interests */}
+      <SectionLabel>Interests</SectionLabel>
+      <div className="ios-list ios-list-inset" style={{ marginBottom: 24, padding: "12px 16px" }}>
+        <div style={{ display: "flex", flexWrap: "wrap", gap: 8 }}>
+          {INTEREST_OPTIONS.map((interest) => {
+            const selected = selectedInterests.includes(interest);
+            return (
+              <button
+                key={interest}
+                type="button"
+                onClick={() => toggleInterest(interest)}
+                style={{
+                  padding: "6px 14px",
+                  borderRadius: 100,
+                  fontSize: 14,
+                  fontWeight: 500,
+                  border: "none",
+                  cursor: "pointer",
+                  transition: "all 0.2s",
+                  background: selected ? "#007AFF" : "rgba(118,118,128,0.12)",
+                  color: selected ? "#fff" : "#000",
+                }}
+              >
+                {interest}
+              </button>
+            );
+          })}
+        </div>
+      </div>
+
+      {/* Matching Preferences */}
+      <SectionLabel>Matching Preferences</SectionLabel>
+      <div className="ios-list ios-list-inset" style={{ marginBottom: 24 }}>
+        <FormRow label="Min Age">
+          <input
+            className="ios-field"
+            type="number"
+            min="18" max="99"
+            style={{ textAlign: "right", width: 80 }}
+            value={form.minAgePref}
+            onChange={(e) => set("minAgePref", e.target.value)}
+            placeholder="Any"
+          />
+        </FormRow>
+        <FormRow label="Max Age">
+          <input
+            className="ios-field"
+            type="number"
+            min="18" max="99"
+            style={{ textAlign: "right", width: 80 }}
+            value={form.maxAgePref}
+            onChange={(e) => set("maxAgePref", e.target.value)}
+            placeholder="Any"
+          />
+        </FormRow>
+        <FormRow label="Branch Pref" last>
+          <div className="ios-segmented" style={{ width: 180 }}>
+            <button className={form.branchPref === "any" ? "active" : ""} onClick={() => set("branchPref", "any")}>Any Branch</button>
+            <button className={form.branchPref === "same" ? "active" : ""} onClick={() => set("branchPref", "same")}>Same Only</button>
+          </div>
         </FormRow>
       </div>
 

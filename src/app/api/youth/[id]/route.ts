@@ -41,6 +41,12 @@ export async function PATCH(
     if (body.photoUrl !== undefined) data.photoUrl = body.photoUrl;
     if (body.status !== undefined) data.status = body.status;
     if (body.registeredBy !== undefined) data.registeredBy = body.registeredBy;
+    if (body.interests !== undefined) data.interests = body.interests;
+    if (body.educationLevel !== undefined) data.educationLevel = body.educationLevel;
+    if (body.minAgePref !== undefined) data.minAgePref = body.minAgePref ? parseInt(body.minAgePref) : null;
+    if (body.maxAgePref !== undefined) data.maxAgePref = body.maxAgePref ? parseInt(body.maxAgePref) : null;
+    if (body.branchPref !== undefined) data.branchPref = body.branchPref;
+    if (body.fellowship !== undefined) data.fellowship = body.fellowship;
 
     const youth = await prisma.youth.update({
       where: { id },

@@ -21,6 +21,15 @@ model Youth {
   photoUrl    String?
   status      String   @default("active") // "active", "matched", "married", "disabled"
   registeredBy String  // elder/pastor who registered
+
+  // Matching preference fields
+  interests      String?  // comma-separated: "music,cooking,sports,reading"
+  educationLevel String?  // "high_school", "diploma", "bachelors", "masters", "doctorate"
+  minAgePref     Int?     // minimum preferred partner age
+  maxAgePref     Int?     // maximum preferred partner age
+  branchPref     String   @default("any") // "same" or "any"
+  fellowship     String?  // years in church: "1", "2-3", "4-5", "6+"
+
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
 
@@ -33,6 +42,7 @@ model Match {
   maleId    String
   femaleId  String
   score     Int      // compatibility score 0-100
+  breakdown String?  // JSON string of score breakdown
   status    String   @default("suggested") // "suggested", "approved", "rejected"
   createdAt DateTime @default(now())
 

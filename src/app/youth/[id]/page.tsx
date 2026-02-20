@@ -21,7 +21,28 @@ interface Youth {
   status: string;
   registeredBy: string;
   createdAt: string;
+  interests?: string;
+  educationLevel?: string;
+  minAgePref?: number;
+  maxAgePref?: number;
+  branchPref: string;
+  fellowship?: string;
 }
+
+const EDUCATION_LABELS: Record<string, string> = {
+  high_school: "High School",
+  diploma: "Diploma",
+  bachelors: "Bachelor's",
+  masters: "Master's",
+  doctorate: "Doctorate",
+};
+
+const FELLOWSHIP_LABELS: Record<string, string> = {
+  "1": "~1 year",
+  "2-3": "2-3 years",
+  "4-5": "4-5 years",
+  "6+": "6+ years",
+};
 
 const statusStyles: Record<string, { bg: string; color: string; label: string }> = {
   active: { bg: "rgba(52,199,89,0.12)", color: "#34C759", label: "Active" },
@@ -172,10 +193,49 @@ export default function YouthProfilePage({
         {youth.phone && <InfoRow label="Phone" value={youth.phone} />}
         {youth.email && <InfoRow label="Email" value={youth.email} />}
         {youth.occupation && <InfoRow label="Occupation" value={youth.occupation} />}
+        {youth.educationLevel && <InfoRow label="Education" value={EDUCATION_LABELS[youth.educationLevel] || youth.educationLevel} />}
+        <InfoRow label="Branch" value={youth.branch} />
+        {youth.fellowship && <InfoRow label="Fellowship" value={FELLOWSHIP_LABELS[youth.fellowship] || youth.fellowship} />}
         {youth.bio && <InfoRow label="About" value={youth.bio} last />}
-        {!youth.bio && <InfoRow label="Branch" value={youth.branch} last />}
-        {youth.bio && <InfoRow label="Branch" value={youth.branch} />}
+        {!youth.bio && !youth.fellowship && <InfoRow label="" value="" last />}
       </InfoSection>
+
+      {/* Interests */}
+      {youth.interests && (
+        <div style={{ marginBottom: 20 }}>
+          <div style={{ padding: "0 32px", marginBottom: 6, fontSize: 13, color: "rgba(60,60,67,0.6)", textTransform: "uppercase", letterSpacing: "0.02em" }}>
+            Interests
+          </div>
+          <div className="ios-list ios-list-inset" style={{ padding: "12px 16px" }}>
+            <div style={{ display: "flex", flexWrap: "wrap", gap: 6 }}>
+              {youth.interests.split(",").map((interest) => (
+                <span
+                  key={interest}
+                  style={{
+                    padding: "4px 12px", borderRadius: 100, fontSize: 14,
+                    background: "rgba(0,122,255,0.1)", color: "#007AFF", fontWeight: 500,
+                  }}
+                >
+                  {interest.trim()}
+                </span>
+              ))}
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Preferences */}
+      {(youth.minAgePref || youth.maxAgePref || youth.branchPref === "same") && (
+        <InfoSection title="Preferences">
+          {(youth.minAgePref || youth.maxAgePref) && (
+            <InfoRow
+              label="Age Range"
+              value={`${youth.minAgePref || "Any"} - ${youth.maxAgePref || "Any"}`}
+            />
+          )}
+          <InfoRow label="Branch Pref" value={youth.branchPref === "same" ? "Same Only" : "Any Branch"} last />
+        </InfoSection>
+      )}
 
       <InfoSection title="Registration">
         <InfoRow label="By" value={youth.registeredBy} />

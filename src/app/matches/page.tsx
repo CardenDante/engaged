@@ -15,13 +15,35 @@ interface Youth {
   photoUrl?: string;
 }
 
+interface ScoreBreakdown {
+  age: number;
+  agePref: number;
+  branch: number;
+  interests: number;
+  education: number;
+  fellowship: number;
+  profile: number;
+  total: number;
+}
+
 interface Match {
   id: string;
   score: number;
+  breakdown?: string;
   status: string;
   male: Youth;
   female: Youth;
 }
+
+const BREAKDOWN_LABELS: { key: keyof Omit<ScoreBreakdown, "total">; label: string; max: number }[] = [
+  { key: "age", label: "Age Gap", max: 25 },
+  { key: "agePref", label: "Age Pref", max: 20 },
+  { key: "branch", label: "Branch", max: 15 },
+  { key: "interests", label: "Interests", max: 20 },
+  { key: "education", label: "Education", max: 10 },
+  { key: "fellowship", label: "Fellowship", max: 5 },
+  { key: "profile", label: "Profile", max: 5 },
+];
 
 export default function MatchesPage() {
   const [matches, setMatches] = useState<Match[]>([]);
@@ -140,12 +162,13 @@ export default function MatchesPage() {
 }
 
 function MatchCard({ match, onUpdate }: { match: Match; onUpdate: (id: string, status: string) => void }) {
+  const [showBreakdown, setShowBreakdown] = useState(false);
   const maleAge = calculateAge(new Date(match.male.dateOfBirth));
   const femaleAge = calculateAge(new Date(match.female.dateOfBirth));
 
-  const scoreColor = match.score >= 80
+  const scoreColor = match.score >= 75
     ? { bg: "rgba(52,199,89,0.1)", color: "#34C759" }
-    : match.score >= 65
+    : match.score >= 55
     ? { bg: "rgba(0,122,255,0.1)", color: "#007AFF" }
     : { bg: "rgba(255,149,0,0.1)", color: "#FF9500" };
 
@@ -153,20 +176,55 @@ function MatchCard({ match, onUpdate }: { match: Match; onUpdate: (id: string, s
     match.status === "approved" ? "#34C759" :
     match.status === "rejected" ? "#FF3B30" : "rgba(60,60,67,0.3)";
 
+  let breakdown: ScoreBreakdown | null = null;
+  try {
+    if (match.breakdown) breakdown = JSON.parse(match.breakdown);
+  } catch { /* ignore */ }
+
   return (
     <div style={{ background: "#fff", borderRadius: 12, overflow: "hidden" }}>
       {/* Score bar */}
       <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: "10px 14px 0" }}>
-        <span style={{
-          fontSize: 13, fontWeight: 600, padding: "2px 8px", borderRadius: 6,
-          background: scoreColor.bg, color: scoreColor.color,
-        }}>
-          {match.score}% match
-        </span>
+        <button
+          onClick={() => breakdown && setShowBreakdown(!showBreakdown)}
+          style={{
+            display: "flex", alignItems: "center", gap: 4,
+            fontSize: 13, fontWeight: 600, padding: "2px 8px", borderRadius: 6,
+            background: scoreColor.bg, color: scoreColor.color,
+            border: "none", cursor: breakdown ? "pointer" : "default",
+          }}
+        >
+          {match.score}%
+          {breakdown && (
+            <svg width="10" height="10" viewBox="0 0 10 10" fill="none" style={{ transform: showBreakdown ? "rotate(180deg)" : "none", transition: "transform 0.2s" }}>
+              <path d="M2 3.5l3 3 3-3" stroke={scoreColor.color} strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
+            </svg>
+          )}
+        </button>
         <span style={{ fontSize: 11, fontWeight: 600, color: statusColor, textTransform: "uppercase", letterSpacing: "0.5px" }}>
           {match.status}
         </span>
       </div>
+
+      {/* Score breakdown */}
+      {showBreakdown && breakdown && (
+        <div style={{ padding: "8px 14px 4px" }}>
+          {BREAKDOWN_LABELS.map(({ key, label, max }) => {
+            const val = breakdown[key] || 0;
+            const pct = (val / max) * 100;
+            const barColor = pct >= 70 ? "#34C759" : pct >= 40 ? "#007AFF" : pct > 0 ? "#FF9500" : "rgba(118,118,128,0.12)";
+            return (
+              <div key={key} style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 4 }}>
+                <span style={{ fontSize: 11, color: "rgba(60,60,67,0.6)", width: 62, flexShrink: 0 }}>{label}</span>
+                <div style={{ flex: 1, height: 4, borderRadius: 2, background: "rgba(118,118,128,0.08)", overflow: "hidden" }}>
+                  <div style={{ width: `${pct}%`, height: "100%", borderRadius: 2, background: barColor, transition: "width 0.3s ease" }} />
+                </div>
+                <span style={{ fontSize: 11, color: "rgba(60,60,67,0.3)", width: 30, textAlign: "right" }}>{val}/{max}</span>
+              </div>
+            );
+          })}
+        </div>
+      )}
 
       {/* Pair */}
       <div style={{ display: "flex", alignItems: "center", padding: "14px 14px 14px" }}>

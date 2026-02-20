@@ -59,6 +59,12 @@ export async function POST(request: NextRequest) {
         bio: body.bio || null,
         photoUrl: body.photoUrl || null,
         registeredBy: body.registeredBy,
+        interests: body.interests || null,
+        educationLevel: body.educationLevel || null,
+        minAgePref: body.minAgePref ? parseInt(body.minAgePref) : null,
+        maxAgePref: body.maxAgePref ? parseInt(body.maxAgePref) : null,
+        branchPref: body.branchPref || "any",
+        fellowship: body.fellowship || null,
       },
     });
 
