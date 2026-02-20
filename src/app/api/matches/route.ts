@@ -56,11 +56,9 @@ function computeMatch(
 ): { score: number; breakdown: ScoreBreakdown } {
   const maleAge = calculateAge(male.dateOfBirth);
   const femaleAge = calculateAge(female.dateOfBirth);
-  const ageDiff = maleAge - femaleAge; // positive = male older
+  const ageDiff = maleAge - femaleAge;
   const absAgeDiff = Math.abs(ageDiff);
 
-  // ── 1. AGE COMPATIBILITY (0-25 pts) ──
-  // Smooth curve: male 1-4 yrs older is ideal
   let ageScore = 0;
   if (ageDiff >= 0 && ageDiff <= 4) {
     ageScore = 25;
@@ -72,8 +70,6 @@ function computeMatch(
     ageScore = Math.max(0, 12 - absAgeDiff);
   }
 
-  // ── 2. AGE PREFERENCE FIT (0-20 pts) ──
-  // Does each fall in the other's stated preferred range?
   let agePrefScore = 0;
   const maleInFemalePref =
     (!female.minAgePref || maleAge >= female.minAgePref) &&
@@ -83,18 +79,15 @@ function computeMatch(
     (!male.maxAgePref || femaleAge <= male.maxAgePref);
 
   if (male.minAgePref || male.maxAgePref || female.minAgePref || female.maxAgePref) {
-    // At least one person set preferences
     if (maleInFemalePref && femaleInMalePref) {
       agePrefScore = 20;
     } else if (maleInFemalePref || femaleInMalePref) {
       agePrefScore = 10;
     }
   } else {
-    // Neither set preferences — neutral
     agePrefScore = 12;
   }
 
-  // ── 3. BRANCH COMPATIBILITY (0-15 pts) ──
   let branchScore = 0;
   const sameBranch =
     male.branch.toLowerCase().trim() === female.branch.toLowerCase().trim();
@@ -102,12 +95,11 @@ function computeMatch(
   if (sameBranch) {
     branchScore = 15;
   } else if (male.branchPref === "same" || female.branchPref === "same") {
-    branchScore = 0; // mismatch on a hard preference
+    branchScore = 0;
   } else {
-    branchScore = 7; // both open to any branch
+    branchScore = 7;
   }
 
-  // ── 4. SHARED INTERESTS (0-20 pts) ──
   let interestsScore = 0;
   const maleInterests = parseInterests(male.interests);
   const femaleInterests = parseInterests(female.interests);
@@ -123,10 +115,9 @@ function computeMatch(
 
     interestsScore = Math.min(20, interestsScore + Math.round(overlapRatio * 5));
   } else {
-    interestsScore = 5; // unknown = neutral
+    interestsScore = 5;
   }
 
-  // ── 5. EDUCATION COMPATIBILITY (0-10 pts) ──
   let educationScore = 0;
   if (male.educationLevel && female.educationLevel) {
     const mRank = EDUCATION_RANKS[male.educationLevel] || 0;
@@ -140,7 +131,6 @@ function computeMatch(
     educationScore = 3;
   }
 
-  // ── 6. FELLOWSHIP DURATION (0-5 pts) ──
   let fellowshipScore = 0;
   if (male.fellowship && female.fellowship) {
     const mRank = FELLOWSHIP_RANKS[male.fellowship] || 0;
@@ -153,7 +143,6 @@ function computeMatch(
     fellowshipScore = 2;
   }
 
-  // ── 7. PROFILE COMPLETENESS (0-5 pts) ──
   const fieldsFilled = (y: YouthRecord) => {
     let n = 0;
     if (y.occupation) n++;
@@ -168,7 +157,6 @@ function computeMatch(
     Math.round(((fieldsFilled(male) + fieldsFilled(female)) / 10) * 5)
   );
 
-  // ── TOTAL ──
   const total = Math.min(
     100,
     ageScore + agePrefScore + branchScore + interestsScore + educationScore + fellowshipScore + profileScore
@@ -208,6 +196,11 @@ export async function POST(request: NextRequest) {
     const action = searchParams.get("action");
 
     if (action === "generate") {
+      // Delete all non-approved matches so they get recalculated fresh
+      await prisma.match.deleteMany({
+        where: { status: { in: ["suggested", "rejected"] } },
+      });
+
       const males = await prisma.youth.findMany({
         where: { gender: "male", status: "active" },
       });
@@ -224,21 +217,22 @@ export async function POST(request: NextRequest) {
 
       for (const male of males) {
         for (const female of females) {
+          // Skip pairs that already have an approved match
           const existing = await prisma.match.findUnique({
             where: {
               maleId_femaleId: { maleId: male.id, femaleId: female.id },
             },
           });
-          if (!existing) {
-            const { score, breakdown } = computeMatch(male, female);
-            if (score >= 45) {
-              newMatches.push({
-                maleId: male.id,
-                femaleId: female.id,
-                score,
-                breakdown: JSON.stringify(breakdown),
-              });
-            }
+          if (existing) continue;
+
+          const { score, breakdown } = computeMatch(male, female);
+          if (score >= 45) {
+            newMatches.push({
+              maleId: male.id,
+              femaleId: female.id,
+              score,
+              breakdown: JSON.stringify(breakdown),
+            });
           }
         }
       }

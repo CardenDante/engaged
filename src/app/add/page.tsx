@@ -4,6 +4,7 @@ import { useState, useRef } from "react";
 import { useRouter } from "next/navigation";
 import BottomNav from "@/components/BottomNav";
 import Avatar from "@/components/Avatar";
+import CameraCapture from "@/components/CameraCapture";
 
 const INTEREST_OPTIONS = [
   "Music", "Cooking", "Sports", "Reading", "Travel",
@@ -53,10 +54,10 @@ export default function AddYouthPage() {
   const [uploading, setUploading] = useState(false);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState("");
+  const [showCamera, setShowCamera] = useState(false);
 
-  const handlePhotoSelect = async (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (!file) return;
+  const uploadFile = async (file: File) => {
+    // Show preview
     const reader = new FileReader();
     reader.onload = (ev) => setPhotoPreview(ev.target?.result as string);
     reader.readAsDataURL(file);
@@ -73,6 +74,17 @@ export default function AddYouthPage() {
       setError("Photo upload failed");
     }
     setUploading(false);
+  };
+
+  const handlePhotoSelect = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    await uploadFile(file);
+  };
+
+  const handleCameraCapture = async (file: File) => {
+    setShowCamera(false);
+    await uploadFile(file);
   };
 
   const toggleInterest = (interest: string) => {
@@ -144,11 +156,7 @@ export default function AddYouthPage() {
 
       {/* Photo Section */}
       <div style={{ display: "flex", flexDirection: "column", alignItems: "center", padding: "24px 0 8px" }}>
-        <button
-          type="button"
-          onClick={() => fileInputRef.current?.click()}
-          style={{ background: "none", border: "none", cursor: "pointer", position: "relative" }}
-        >
+        <div style={{ position: "relative" }}>
           {photoPreview ? (
             <Avatar src={photoPreview} initials="" size={100} />
           ) : (
@@ -173,16 +181,51 @@ export default function AddYouthPage() {
               <div style={{ width: 24, height: 24, border: "2.5px solid rgba(255,255,255,0.3)", borderTopColor: "#fff", borderRadius: "50%", animation: "spin 0.6s linear infinite" }} />
             </div>
           )}
-        </button>
-        <button
-          type="button"
-          onClick={() => fileInputRef.current?.click()}
-          style={{ fontSize: 13, color: "#007AFF", fontWeight: 500, marginTop: 8, background: "none", border: "none", cursor: "pointer" }}
-        >
-          {photoPreview ? "Change Photo" : "Add Photo"}
-        </button>
+        </div>
+        <div style={{ display: "flex", gap: 16, marginTop: 10 }}>
+          <button
+            type="button"
+            onClick={() => setShowCamera(true)}
+            style={{
+              fontSize: 13, color: "#007AFF", fontWeight: 500,
+              background: "rgba(0,122,255,0.08)", border: "none",
+              borderRadius: 100, padding: "6px 14px", cursor: "pointer",
+              display: "flex", alignItems: "center", gap: 4,
+            }}
+          >
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#007AFF" strokeWidth="2" strokeLinecap="round">
+              <path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z" />
+              <circle cx="12" cy="13" r="4" />
+            </svg>
+            Camera
+          </button>
+          <button
+            type="button"
+            onClick={() => fileInputRef.current?.click()}
+            style={{
+              fontSize: 13, color: "#007AFF", fontWeight: 500,
+              background: "rgba(0,122,255,0.08)", border: "none",
+              borderRadius: 100, padding: "6px 14px", cursor: "pointer",
+              display: "flex", alignItems: "center", gap: 4,
+            }}
+          >
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#007AFF" strokeWidth="2" strokeLinecap="round">
+              <rect x="3" y="3" width="18" height="18" rx="2" ry="2" />
+              <circle cx="8.5" cy="8.5" r="1.5" />
+              <polyline points="21 15 16 10 5 21" />
+            </svg>
+            Gallery
+          </button>
+        </div>
         <input ref={fileInputRef} type="file" accept="image/*" onChange={handlePhotoSelect} hidden />
       </div>
+
+      {showCamera && (
+        <CameraCapture
+          onCapture={handleCameraCapture}
+          onClose={() => setShowCamera(false)}
+        />
+      )}
 
       {error && (
         <div style={{ margin: "0 16px 12px", padding: "10px 14px", background: "rgba(255,59,48,0.08)", borderRadius: 10, fontSize: 14, color: "#FF3B30" }}>
