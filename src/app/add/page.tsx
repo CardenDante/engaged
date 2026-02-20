@@ -249,7 +249,7 @@ export default function AddYouthPage() {
           </div>
         </FormRow>
         <FormRow label="Birthday" required>
-          <input className="ios-field" type="date" style={{ textAlign: "right", color: "#007AFF" }} value={form.dateOfBirth} onChange={(e) => set("dateOfBirth", e.target.value)} />
+          <input className="ios-field" type="date" style={{ textAlign: "right", color: "#007AFF", width: "auto" }} value={form.dateOfBirth} onChange={(e) => set("dateOfBirth", e.target.value)} />
         </FormRow>
         <FormRow label="Occupation">
           <input className="ios-field" style={{ textAlign: "right" }} value={form.occupation} onChange={(e) => set("occupation", e.target.value)} placeholder="Optional" />

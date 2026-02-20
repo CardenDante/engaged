@@ -32,7 +32,7 @@ export async function GET(request: NextRequest) {
 
     const youth = await prisma.youth.findMany({
       where,
-      orderBy: { dateOfBirth: "asc" },
+      orderBy: { firstName: "asc" },
     });
 
     return NextResponse.json(youth);
