@@ -30,39 +30,30 @@ export default function AddYouthPage() {
   const handlePhotoSelect = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
-
-    // Preview
     const reader = new FileReader();
     reader.onload = (ev) => setPhotoPreview(ev.target?.result as string);
     reader.readAsDataURL(file);
 
-    // Upload
     setUploading(true);
     try {
-      const formData = new FormData();
-      formData.append("file", file);
-      const res = await fetch("/api/upload", { method: "POST", body: formData });
+      const fd = new FormData();
+      fd.append("file", file);
+      const res = await fetch("/api/upload", { method: "POST", body: fd });
       const data = await res.json();
-      if (data.url) {
-        setPhotoUrl(data.url);
-      } else {
-        setError("Photo upload failed. You can still save without a photo.");
-      }
+      if (data.url) setPhotoUrl(data.url);
+      else setError("Photo upload failed");
     } catch {
-      setError("Photo upload failed. You can still save without a photo.");
+      setError("Photo upload failed");
     }
     setUploading(false);
   };
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
+  const handleSubmit = async () => {
     setError("");
-
     if (!form.firstName || !form.lastName || !form.dateOfBirth || !form.branch || !form.registeredBy) {
-      setError("Please fill in all required fields.");
+      setError("Please fill all required fields");
       return;
     }
-
     setSaving(true);
     try {
       const res = await fetch("/api/youth", {
@@ -70,244 +61,197 @@ export default function AddYouthPage() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ ...form, photoUrl }),
       });
-
-      if (res.ok) {
-        router.push("/");
-      } else {
-        setError("Failed to save. Please try again.");
-      }
+      if (res.ok) router.push("/");
+      else setError("Save failed");
     } catch {
-      setError("Failed to save. Please try again.");
+      setError("Save failed");
     }
     setSaving(false);
   };
 
-  const update = (field: string, value: string) =>
-    setForm((prev) => ({ ...prev, [field]: value }));
+  const set = (k: string, v: string) => setForm((p) => ({ ...p, [k]: v }));
 
   return (
-    <div className="pb-20">
-      {/* Header */}
-      <div className="sticky top-0 z-40 bg-ios-bg/80 backdrop-blur-xl">
-        <div className="px-4 pt-12 pb-3 flex items-center justify-between">
-          <button
-            onClick={() => router.back()}
-            className="text-ios-blue text-[17px]"
-          >
+    <div className="min-h-screen" style={{ paddingBottom: 90 }}>
+      {/* iOS Nav Bar */}
+      <div
+        className="sticky top-0 z-40"
+        style={{
+          background: "rgba(249, 249, 249, 0.94)",
+          backdropFilter: "saturate(180%) blur(20px)",
+          WebkitBackdropFilter: "saturate(180%) blur(20px)",
+          borderBottom: "0.5px solid rgba(60,60,67,0.12)",
+        }}
+      >
+        <div style={{ height: 54 }} />
+        <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: "0 16px", height: 44 }}>
+          <button onClick={() => router.back()} style={{ fontSize: 17, color: "#007AFF", background: "none", border: "none", cursor: "pointer" }}>
             Cancel
           </button>
-          <h1 className="text-[17px] font-semibold text-ios-label">
-            New Youth
-          </h1>
+          <span style={{ fontSize: 17, fontWeight: 600, color: "#000" }}>New Youth</span>
           <button
             onClick={handleSubmit}
             disabled={saving}
-            className="text-ios-blue text-[17px] font-semibold disabled:opacity-40"
+            style={{
+              fontSize: 17, fontWeight: 600, color: "#007AFF",
+              background: "none", border: "none", cursor: "pointer",
+              opacity: saving ? 0.4 : 1,
+            }}
           >
-            {saving ? "Saving..." : "Done"}
+            {saving ? "Saving" : "Done"}
           </button>
         </div>
       </div>
 
-      <form onSubmit={handleSubmit} className="px-4">
-        {/* Photo upload */}
-        <div className="flex flex-col items-center py-6">
-          <button
-            type="button"
-            onClick={() => fileInputRef.current?.click()}
-            className="relative"
-          >
-            {photoPreview ? (
-              <Avatar src={photoPreview} initials="" size={100} />
-            ) : (
-              <div className="w-[100px] h-[100px] rounded-full bg-gray-200 flex items-center justify-center">
-                <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="#8E8E93" strokeWidth="1.5">
-                  <path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z" />
-                  <circle cx="12" cy="13" r="4" />
-                </svg>
-              </div>
-            )}
-            {uploading && (
-              <div className="absolute inset-0 bg-black/30 rounded-full flex items-center justify-center">
-                <div className="w-8 h-8 border-2 border-white border-t-transparent rounded-full animate-spin" />
-              </div>
-            )}
-          </button>
-          <button
-            type="button"
-            onClick={() => fileInputRef.current?.click()}
-            className="text-ios-blue text-[13px] font-medium mt-2"
-          >
-            {photoPreview ? "Change Photo" : "Add Photo"}
-          </button>
-          <input
-            ref={fileInputRef}
-            type="file"
-            accept="image/*"
-            onChange={handlePhotoSelect}
-            className="hidden"
+      {/* Photo Section */}
+      <div style={{ display: "flex", flexDirection: "column", alignItems: "center", padding: "24px 0 8px" }}>
+        <button
+          type="button"
+          onClick={() => fileInputRef.current?.click()}
+          style={{ background: "none", border: "none", cursor: "pointer", position: "relative" }}
+        >
+          {photoPreview ? (
+            <Avatar src={photoPreview} initials="" size={100} />
+          ) : (
+            <div
+              style={{
+                width: 100, height: 100, borderRadius: "50%",
+                background: "rgba(118,118,128,0.12)",
+                display: "flex", alignItems: "center", justifyContent: "center",
+              }}
+            >
+              <svg width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="rgba(60,60,67,0.3)" strokeWidth="1.4">
+                <path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z" />
+                <circle cx="12" cy="13" r="4" />
+              </svg>
+            </div>
+          )}
+          {uploading && (
+            <div style={{
+              position: "absolute", inset: 0, borderRadius: "50%",
+              background: "rgba(0,0,0,0.3)", display: "flex", alignItems: "center", justifyContent: "center",
+            }}>
+              <div style={{ width: 24, height: 24, border: "2.5px solid rgba(255,255,255,0.3)", borderTopColor: "#fff", borderRadius: "50%", animation: "spin 0.6s linear infinite" }} />
+            </div>
+          )}
+        </button>
+        <button
+          type="button"
+          onClick={() => fileInputRef.current?.click()}
+          style={{ fontSize: 13, color: "#007AFF", fontWeight: 500, marginTop: 8, background: "none", border: "none", cursor: "pointer" }}
+        >
+          {photoPreview ? "Change Photo" : "Add Photo"}
+        </button>
+        <input ref={fileInputRef} type="file" accept="image/*" onChange={handlePhotoSelect} hidden />
+      </div>
+
+      {error && (
+        <div style={{ margin: "0 16px 12px", padding: "10px 14px", background: "rgba(255,59,48,0.08)", borderRadius: 10, fontSize: 14, color: "#FF3B30" }}>
+          {error}
+        </div>
+      )}
+
+      {/* Personal Info Group */}
+      <SectionLabel>Personal Information</SectionLabel>
+      <div className="ios-list ios-list-inset" style={{ marginBottom: 24 }}>
+        <FormRow label="First Name" required>
+          <input className="ios-field" style={{ textAlign: "right" }} value={form.firstName} onChange={(e) => set("firstName", e.target.value)} placeholder="Required" />
+        </FormRow>
+        <FormRow label="Last Name" required>
+          <input className="ios-field" style={{ textAlign: "right" }} value={form.lastName} onChange={(e) => set("lastName", e.target.value)} placeholder="Required" />
+        </FormRow>
+        <FormRow label="Gender">
+          <div className="ios-segmented" style={{ width: 160 }}>
+            <button className={form.gender === "male" ? "active" : ""} onClick={() => set("gender", "male")}>Male</button>
+            <button className={form.gender === "female" ? "active" : ""} onClick={() => set("gender", "female")}>Female</button>
+          </div>
+        </FormRow>
+        <FormRow label="Birthday" required>
+          <input className="ios-field" type="date" style={{ textAlign: "right", color: "#007AFF" }} value={form.dateOfBirth} onChange={(e) => set("dateOfBirth", e.target.value)} />
+        </FormRow>
+        <FormRow label="Occupation" last>
+          <input className="ios-field" style={{ textAlign: "right" }} value={form.occupation} onChange={(e) => set("occupation", e.target.value)} placeholder="Optional" />
+        </FormRow>
+      </div>
+
+      {/* Contact Group */}
+      <SectionLabel>Contact</SectionLabel>
+      <div className="ios-list ios-list-inset" style={{ marginBottom: 24 }}>
+        <FormRow label="Phone">
+          <input className="ios-field" type="tel" style={{ textAlign: "right" }} value={form.phone} onChange={(e) => set("phone", e.target.value)} placeholder="Optional" />
+        </FormRow>
+        <FormRow label="Email" last>
+          <input className="ios-field" type="email" style={{ textAlign: "right" }} value={form.email} onChange={(e) => set("email", e.target.value)} placeholder="Optional" />
+        </FormRow>
+      </div>
+
+      {/* Church Group */}
+      <SectionLabel>Church Details</SectionLabel>
+      <div className="ios-list ios-list-inset" style={{ marginBottom: 24 }}>
+        <FormRow label="Branch" required>
+          <input className="ios-field" style={{ textAlign: "right" }} value={form.branch} onChange={(e) => set("branch", e.target.value)} placeholder="Required" />
+        </FormRow>
+        <FormRow label="Registered By" required last>
+          <input className="ios-field" style={{ textAlign: "right" }} value={form.registeredBy} onChange={(e) => set("registeredBy", e.target.value)} placeholder="Elder/Pastor" />
+        </FormRow>
+      </div>
+
+      {/* Bio */}
+      <SectionLabel>About</SectionLabel>
+      <div className="ios-list ios-list-inset" style={{ marginBottom: 24 }}>
+        <div style={{ padding: 0 }}>
+          <textarea
+            className="ios-field"
+            value={form.bio}
+            onChange={(e) => set("bio", e.target.value)}
+            placeholder="Brief description (optional)"
+            rows={3}
+            style={{ resize: "none", padding: "12px 16px", display: "block" }}
           />
         </div>
+      </div>
 
-        {error && (
-          <div className="mb-4 p-3 bg-red-50 border border-red-200 rounded-xl text-[13px] text-ios-red">
-            {error}
-          </div>
-        )}
-
-        {/* Personal Info Section */}
-        <div className="mb-6">
-          <p className="text-[13px] font-medium text-ios-gray uppercase tracking-wide px-4 mb-1.5">
-            Personal Information
-          </p>
-          <div className="bg-white rounded-xl overflow-hidden">
-            <div className="flex items-center px-4 py-3 border-b border-ios-separator/30">
-              <label className="text-[15px] text-ios-label w-28 flex-shrink-0">First Name</label>
-              <input
-                type="text"
-                value={form.firstName}
-                onChange={(e) => update("firstName", e.target.value)}
-                placeholder="Required"
-                className="flex-1 text-[15px] text-ios-label placeholder-ios-gray/60 outline-none text-right"
-              />
-            </div>
-            <div className="flex items-center px-4 py-3 border-b border-ios-separator/30">
-              <label className="text-[15px] text-ios-label w-28 flex-shrink-0">Last Name</label>
-              <input
-                type="text"
-                value={form.lastName}
-                onChange={(e) => update("lastName", e.target.value)}
-                placeholder="Required"
-                className="flex-1 text-[15px] text-ios-label placeholder-ios-gray/60 outline-none text-right"
-              />
-            </div>
-            <div className="flex items-center px-4 py-3 border-b border-ios-separator/30">
-              <label className="text-[15px] text-ios-label w-28 flex-shrink-0">Gender</label>
-              <div className="flex-1 flex justify-end">
-                <div className="inline-flex bg-gray-100 rounded-lg p-0.5">
-                  <button
-                    type="button"
-                    onClick={() => update("gender", "male")}
-                    className={`px-4 py-1.5 rounded-md text-[13px] font-medium transition-all ${
-                      form.gender === "male"
-                        ? "bg-white text-ios-blue shadow-sm"
-                        : "text-ios-gray"
-                    }`}
-                  >
-                    Male
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => update("gender", "female")}
-                    className={`px-4 py-1.5 rounded-md text-[13px] font-medium transition-all ${
-                      form.gender === "female"
-                        ? "bg-white text-ios-blue shadow-sm"
-                        : "text-ios-gray"
-                    }`}
-                  >
-                    Female
-                  </button>
-                </div>
-              </div>
-            </div>
-            <div className="flex items-center px-4 py-3 border-b border-ios-separator/30">
-              <label className="text-[15px] text-ios-label w-28 flex-shrink-0">Birthday</label>
-              <input
-                type="date"
-                value={form.dateOfBirth}
-                onChange={(e) => update("dateOfBirth", e.target.value)}
-                className="flex-1 text-[15px] text-ios-blue outline-none text-right"
-              />
-            </div>
-            <div className="flex items-center px-4 py-3">
-              <label className="text-[15px] text-ios-label w-28 flex-shrink-0">Occupation</label>
-              <input
-                type="text"
-                value={form.occupation}
-                onChange={(e) => update("occupation", e.target.value)}
-                placeholder="Optional"
-                className="flex-1 text-[15px] text-ios-label placeholder-ios-gray/60 outline-none text-right"
-              />
-            </div>
-          </div>
-        </div>
-
-        {/* Contact Section */}
-        <div className="mb-6">
-          <p className="text-[13px] font-medium text-ios-gray uppercase tracking-wide px-4 mb-1.5">
-            Contact
-          </p>
-          <div className="bg-white rounded-xl overflow-hidden">
-            <div className="flex items-center px-4 py-3 border-b border-ios-separator/30">
-              <label className="text-[15px] text-ios-label w-28 flex-shrink-0">Phone</label>
-              <input
-                type="tel"
-                value={form.phone}
-                onChange={(e) => update("phone", e.target.value)}
-                placeholder="Optional"
-                className="flex-1 text-[15px] text-ios-label placeholder-ios-gray/60 outline-none text-right"
-              />
-            </div>
-            <div className="flex items-center px-4 py-3">
-              <label className="text-[15px] text-ios-label w-28 flex-shrink-0">Email</label>
-              <input
-                type="email"
-                value={form.email}
-                onChange={(e) => update("email", e.target.value)}
-                placeholder="Optional"
-                className="flex-1 text-[15px] text-ios-label placeholder-ios-gray/60 outline-none text-right"
-              />
-            </div>
-          </div>
-        </div>
-
-        {/* Church Section */}
-        <div className="mb-6">
-          <p className="text-[13px] font-medium text-ios-gray uppercase tracking-wide px-4 mb-1.5">
-            Church
-          </p>
-          <div className="bg-white rounded-xl overflow-hidden">
-            <div className="flex items-center px-4 py-3 border-b border-ios-separator/30">
-              <label className="text-[15px] text-ios-label w-28 flex-shrink-0">Branch</label>
-              <input
-                type="text"
-                value={form.branch}
-                onChange={(e) => update("branch", e.target.value)}
-                placeholder="Required"
-                className="flex-1 text-[15px] text-ios-label placeholder-ios-gray/60 outline-none text-right"
-              />
-            </div>
-            <div className="flex items-center px-4 py-3">
-              <label className="text-[15px] text-ios-label w-28 flex-shrink-0">Registered By</label>
-              <input
-                type="text"
-                value={form.registeredBy}
-                onChange={(e) => update("registeredBy", e.target.value)}
-                placeholder="Elder/Pastor name"
-                className="flex-1 text-[15px] text-ios-label placeholder-ios-gray/60 outline-none text-right"
-              />
-            </div>
-          </div>
-        </div>
-
-        {/* Bio Section */}
-        <div className="mb-6">
-          <p className="text-[13px] font-medium text-ios-gray uppercase tracking-wide px-4 mb-1.5">
-            About
-          </p>
-          <div className="bg-white rounded-xl overflow-hidden">
-            <textarea
-              value={form.bio}
-              onChange={(e) => update("bio", e.target.value)}
-              placeholder="Brief description (optional)"
-              rows={3}
-              className="w-full px-4 py-3 text-[15px] text-ios-label placeholder-ios-gray/60 outline-none resize-none"
-            />
-          </div>
-        </div>
-      </form>
-
+      <style>{`@keyframes spin { to { transform: rotate(360deg); } }`}</style>
       <BottomNav />
+    </div>
+  );
+}
+
+function SectionLabel({ children }: { children: React.ReactNode }) {
+  return (
+    <div style={{ padding: "0 32px", marginBottom: 6, fontSize: 13, color: "rgba(60,60,67,0.6)", textTransform: "uppercase", letterSpacing: "0.02em" }}>
+      {children}
+    </div>
+  );
+}
+
+function FormRow({
+  label,
+  children,
+  last = false,
+  required = false,
+}: {
+  label: string;
+  children: React.ReactNode;
+  last?: boolean;
+  required?: boolean;
+}) {
+  return (
+    <div
+      style={{
+        display: "flex",
+        alignItems: "center",
+        padding: "7px 16px",
+        minHeight: 44,
+        borderBottom: last ? "none" : "0.5px solid rgba(60,60,67,0.12)",
+      }}
+    >
+      <span style={{ fontSize: 17, color: "#000", minWidth: 110, flexShrink: 0 }}>
+        {label}{required && <span style={{ color: "#FF3B30", marginLeft: 2 }}>*</span>}
+      </span>
+      <div style={{ flex: 1, display: "flex", justifyContent: "flex-end" }}>
+        {children}
+      </div>
     </div>
   );
 }

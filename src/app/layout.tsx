@@ -2,8 +2,13 @@ import type { Metadata, Viewport } from "next";
 import "./globals.css";
 
 export const metadata: Metadata = {
-  title: "Engaged - Church Youth Enrollment",
+  title: "Engaged",
   description: "Church youth enrollment and matching system",
+  appleWebApp: {
+    capable: true,
+    statusBarStyle: "default",
+    title: "Engaged",
+  },
 };
 
 export const viewport: Viewport = {
@@ -11,6 +16,7 @@ export const viewport: Viewport = {
   initialScale: 1,
   maximumScale: 1,
   userScalable: false,
+  viewportFit: "cover",
   themeColor: "#f2f2f7",
 };
 
@@ -27,10 +33,10 @@ export default function RootLayout({
           rel="stylesheet"
         />
       </head>
-      <body className="min-h-screen bg-ios-bg font-roboto">
-        <div className="mx-auto max-w-lg min-h-screen bg-ios-bg">
+      <body>
+        <main className="mx-auto max-w-[430px] min-h-screen relative">
           {children}
-        </div>
+        </main>
       </body>
     </html>
   );

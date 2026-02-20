@@ -12,15 +12,11 @@ interface Youth {
   gender: string;
   dateOfBirth: string;
   branch: string;
-  occupation?: string;
   photoUrl?: string;
-  status: string;
 }
 
 interface Match {
   id: string;
-  maleId: string;
-  femaleId: string;
   score: number;
   status: string;
   male: Youth;
@@ -35,24 +31,20 @@ export default function MatchesPage() {
 
   const fetchMatches = async () => {
     const res = await fetch("/api/matches");
-    const data = await res.json();
-    setMatches(data);
+    setMatches(await res.json());
     setLoading(false);
   };
 
-  useEffect(() => {
-    fetchMatches();
-  }, []);
+  useEffect(() => { fetchMatches(); }, []);
 
-  const generateMatches = async () => {
+  const generate = async () => {
     setGenerating(true);
     const res = await fetch("/api/matches?action=generate", { method: "POST" });
-    const data = await res.json();
-    setMatches(data);
+    setMatches(await res.json());
     setGenerating(false);
   };
 
-  const updateMatchStatus = async (matchId: string, status: string) => {
+  const updateStatus = async (matchId: string, status: string) => {
     await fetch("/api/matches", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
@@ -63,168 +55,170 @@ export default function MatchesPage() {
 
   const filtered = filter === "all" ? matches : matches.filter((m) => m.status === filter);
 
-  const getScoreColor = (score: number) => {
-    if (score >= 80) return "text-green-600 bg-green-50";
-    if (score >= 65) return "text-blue-600 bg-blue-50";
-    return "text-orange-600 bg-orange-50";
-  };
-
   return (
-    <div className="pb-20">
-      {/* Header */}
-      <div className="sticky top-0 z-40 bg-ios-bg/80 backdrop-blur-xl">
-        <div className="px-4 pt-12 pb-1">
-          <div className="flex items-center justify-between">
-            <h1 className="text-[34px] font-bold text-ios-label tracking-tight">
-              Matches
-            </h1>
-            <button
-              onClick={generateMatches}
-              disabled={generating}
-              className="bg-ios-blue text-white px-4 py-2 rounded-full text-[13px] font-semibold disabled:opacity-50 active:opacity-80 transition-opacity"
-            >
-              {generating ? (
-                <span className="flex items-center gap-2">
-                  <span className="w-3 h-3 border-2 border-white border-t-transparent rounded-full animate-spin" />
-                  Finding...
-                </span>
-              ) : (
-                "Find Matches"
-              )}
-            </button>
-          </div>
-          <p className="text-[13px] text-ios-gray mt-0.5">
-            {matches.length} match{matches.length !== 1 ? "es" : ""} found
-          </p>
+    <div className="min-h-screen" style={{ paddingBottom: 90 }}>
+      {/* Nav */}
+      <div
+        className="sticky top-0 z-40"
+        style={{
+          background: "rgba(242, 242, 247, 0.94)",
+          backdropFilter: "saturate(180%) blur(20px)",
+          WebkitBackdropFilter: "saturate(180%) blur(20px)",
+        }}
+      >
+        <div style={{ height: 54 }} />
+        <div style={{ padding: "0 16px 6px", display: "flex", alignItems: "flex-end", justifyContent: "space-between" }}>
+          <h1 className="ios-large-title">Matches</h1>
+          <button
+            onClick={generate}
+            disabled={generating}
+            style={{
+              fontSize: 15, fontWeight: 500, color: "#fff", background: "#007AFF",
+              border: "none", borderRadius: 100, padding: "7px 16px", cursor: "pointer",
+              opacity: generating ? 0.6 : 1, marginBottom: 4,
+              display: "flex", alignItems: "center", gap: 6,
+            }}
+          >
+            {generating && (
+              <span style={{ width: 12, height: 12, border: "2px solid rgba(255,255,255,0.3)", borderTopColor: "#fff", borderRadius: "50%", display: "inline-block", animation: "spin 0.6s linear infinite" }} />
+            )}
+            {generating ? "Finding..." : "Find Matches"}
+          </button>
         </div>
 
-        {/* Filter */}
-        <div className="px-4 py-3 flex gap-2 overflow-x-auto no-scrollbar">
-          {(["all", "suggested", "approved", "rejected"] as const).map((f) => (
-            <button
-              key={f}
-              onClick={() => setFilter(f)}
-              className={`px-4 py-1.5 rounded-full text-[13px] font-medium whitespace-nowrap transition-all ${
-                filter === f
-                  ? "bg-ios-blue text-white"
-                  : "bg-gray-200/60 text-ios-secondary"
-              }`}
-            >
-              {f.charAt(0).toUpperCase() + f.slice(1)}
-            </button>
-          ))}
+        {/* Segmented control */}
+        <div style={{ padding: "4px 16px 10px" }}>
+          <div className="ios-segmented">
+            {(["all", "suggested", "approved", "rejected"] as const).map((f) => (
+              <button
+                key={f}
+                className={filter === f ? "active" : ""}
+                onClick={() => setFilter(f)}
+              >
+                {f.charAt(0).toUpperCase() + f.slice(1)}
+              </button>
+            ))}
+          </div>
         </div>
       </div>
 
-      {/* Matches List */}
+      {/* Content */}
       {loading ? (
-        <div className="flex items-center justify-center py-20">
-          <div className="w-8 h-8 border-2 border-ios-blue border-t-transparent rounded-full animate-spin" />
+        <div style={{ display: "flex", justifyContent: "center", paddingTop: 80 }}>
+          <div style={{ width: 20, height: 20, border: "2.5px solid rgba(0,0,0,0.08)", borderTopColor: "#007AFF", borderRadius: "50%", animation: "spin 0.6s linear infinite" }} />
         </div>
       ) : filtered.length === 0 ? (
-        <div className="flex flex-col items-center justify-center py-20 px-4 text-center">
-          <div className="w-16 h-16 rounded-full bg-gray-200 flex items-center justify-center mb-4">
-            <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="#8E8E93" strokeWidth="1.5">
+        <div style={{ textAlign: "center", paddingTop: 80 }}>
+          <div style={{ width: 60, height: 60, borderRadius: "50%", background: "rgba(118,118,128,0.12)", display: "inline-flex", alignItems: "center", justifyContent: "center", marginBottom: 16 }}>
+            <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="rgba(60,60,67,0.3)" strokeWidth="1.6">
               <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z" />
             </svg>
           </div>
-          <p className="text-ios-gray text-[15px]">No matches yet</p>
-          <p className="text-ios-gray/60 text-[13px] mt-1">
-            Tap &quot;Find Matches&quot; to generate intelligent matches
+          <p style={{ fontSize: 17, color: "rgba(60,60,67,0.6)" }}>No Matches Yet</p>
+          <p style={{ fontSize: 13, color: "rgba(60,60,67,0.3)", marginTop: 4 }}>
+            Tap Find Matches to discover compatible pairs
           </p>
         </div>
       ) : (
-        <div className="px-4 space-y-3 pt-1">
-          {filtered.map((match) => (
-            <div
-              key={match.id}
-              className="bg-white rounded-2xl overflow-hidden shadow-sm"
-            >
-              {/* Match Header with Score */}
-              <div className="flex items-center justify-between px-4 pt-3 pb-2">
-                <div className="flex items-center gap-2">
-                  <span
-                    className={`text-[13px] font-bold px-2.5 py-0.5 rounded-full ${getScoreColor(
-                      match.score
-                    )}`}
-                  >
-                    {match.score}%
-                  </span>
-                  <span className="text-[11px] text-ios-gray uppercase tracking-wide">
-                    {match.status}
-                  </span>
-                </div>
-              </div>
+        <div style={{ padding: "8px 16px" }}>
+          <p style={{ fontSize: 13, color: "rgba(60,60,67,0.6)", marginBottom: 12 }}>
+            {filtered.length} match{filtered.length !== 1 ? "es" : ""}
+          </p>
 
-              {/* Match Pair */}
-              <div className="flex items-center px-4 pb-3">
-                {/* Male */}
-                <div className="flex-1 flex flex-col items-center text-center">
-                  <Avatar
-                    src={match.male.photoUrl}
-                    initials={getInitials(match.male.firstName, match.male.lastName)}
-                    size={56}
-                  />
-                  <p className="text-[14px] font-medium text-ios-label mt-2">
-                    {match.male.firstName}
-                  </p>
-                  <p className="text-[12px] text-ios-gray">
-                    {match.male.lastName}, {calculateAge(new Date(match.male.dateOfBirth))}
-                  </p>
-                  <p className="text-[11px] text-ios-gray/60 mt-0.5">
-                    {match.male.branch}
-                  </p>
-                </div>
-
-                {/* Heart connector */}
-                <div className="px-3">
-                  <svg width="28" height="28" viewBox="0 0 24 24" fill="#FF3B30" stroke="none">
-                    <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z" />
-                  </svg>
-                </div>
-
-                {/* Female */}
-                <div className="flex-1 flex flex-col items-center text-center">
-                  <Avatar
-                    src={match.female.photoUrl}
-                    initials={getInitials(match.female.firstName, match.female.lastName)}
-                    size={56}
-                  />
-                  <p className="text-[14px] font-medium text-ios-label mt-2">
-                    {match.female.firstName}
-                  </p>
-                  <p className="text-[12px] text-ios-gray">
-                    {match.female.lastName}, {calculateAge(new Date(match.female.dateOfBirth))}
-                  </p>
-                  <p className="text-[11px] text-ios-gray/60 mt-0.5">
-                    {match.female.branch}
-                  </p>
-                </div>
-              </div>
-
-              {/* Actions */}
-              {match.status === "suggested" && (
-                <div className="flex border-t border-ios-separator/30">
-                  <button
-                    onClick={() => updateMatchStatus(match.id, "rejected")}
-                    className="flex-1 py-3 text-[15px] text-ios-red font-medium text-center border-r border-ios-separator/30 active:bg-gray-100"
-                  >
-                    Decline
-                  </button>
-                  <button
-                    onClick={() => updateMatchStatus(match.id, "approved")}
-                    className="flex-1 py-3 text-[15px] text-ios-green font-semibold text-center active:bg-gray-100"
-                  >
-                    Approve
-                  </button>
-                </div>
-              )}
-            </div>
-          ))}
+          <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
+            {filtered.map((match) => (
+              <MatchCard key={match.id} match={match} onUpdate={updateStatus} />
+            ))}
+          </div>
         </div>
       )}
 
+      <style>{`@keyframes spin { to { transform: rotate(360deg); } }`}</style>
       <BottomNav />
+    </div>
+  );
+}
+
+function MatchCard({ match, onUpdate }: { match: Match; onUpdate: (id: string, status: string) => void }) {
+  const maleAge = calculateAge(new Date(match.male.dateOfBirth));
+  const femaleAge = calculateAge(new Date(match.female.dateOfBirth));
+
+  const scoreColor = match.score >= 80
+    ? { bg: "rgba(52,199,89,0.1)", color: "#34C759" }
+    : match.score >= 65
+    ? { bg: "rgba(0,122,255,0.1)", color: "#007AFF" }
+    : { bg: "rgba(255,149,0,0.1)", color: "#FF9500" };
+
+  const statusColor =
+    match.status === "approved" ? "#34C759" :
+    match.status === "rejected" ? "#FF3B30" : "rgba(60,60,67,0.3)";
+
+  return (
+    <div style={{ background: "#fff", borderRadius: 12, overflow: "hidden" }}>
+      {/* Score bar */}
+      <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: "10px 14px 0" }}>
+        <span style={{
+          fontSize: 13, fontWeight: 600, padding: "2px 8px", borderRadius: 6,
+          background: scoreColor.bg, color: scoreColor.color,
+        }}>
+          {match.score}% match
+        </span>
+        <span style={{ fontSize: 11, fontWeight: 600, color: statusColor, textTransform: "uppercase", letterSpacing: "0.5px" }}>
+          {match.status}
+        </span>
+      </div>
+
+      {/* Pair */}
+      <div style={{ display: "flex", alignItems: "center", padding: "14px 14px 14px" }}>
+        {/* Male */}
+        <div style={{ flex: 1, display: "flex", flexDirection: "column", alignItems: "center", textAlign: "center" }}>
+          <Avatar src={match.male.photoUrl} initials={getInitials(match.male.firstName, match.male.lastName)} size={52} />
+          <p style={{ fontSize: 15, fontWeight: 500, color: "#000", marginTop: 8 }}>{match.male.firstName}</p>
+          <p style={{ fontSize: 12, color: "rgba(60,60,67,0.6)", marginTop: 1 }}>{maleAge} yrs</p>
+          <p style={{ fontSize: 11, color: "rgba(60,60,67,0.3)", marginTop: 1 }}>{match.male.branch}</p>
+        </div>
+
+        {/* Heart */}
+        <div style={{ padding: "0 8px" }}>
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="#FF2D55" stroke="none" opacity={0.8}>
+            <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z" />
+          </svg>
+        </div>
+
+        {/* Female */}
+        <div style={{ flex: 1, display: "flex", flexDirection: "column", alignItems: "center", textAlign: "center" }}>
+          <Avatar src={match.female.photoUrl} initials={getInitials(match.female.firstName, match.female.lastName)} size={52} />
+          <p style={{ fontSize: 15, fontWeight: 500, color: "#000", marginTop: 8 }}>{match.female.firstName}</p>
+          <p style={{ fontSize: 12, color: "rgba(60,60,67,0.6)", marginTop: 1 }}>{femaleAge} yrs</p>
+          <p style={{ fontSize: 11, color: "rgba(60,60,67,0.3)", marginTop: 1 }}>{match.female.branch}</p>
+        </div>
+      </div>
+
+      {/* Actions */}
+      {match.status === "suggested" && (
+        <div style={{ display: "flex", borderTop: "0.5px solid rgba(60,60,67,0.12)" }}>
+          <button
+            onClick={() => onUpdate(match.id, "rejected")}
+            style={{
+              flex: 1, padding: "12px 0", fontSize: 15, fontWeight: 400,
+              color: "#FF3B30", textAlign: "center", background: "transparent",
+              border: "none", cursor: "pointer", borderRight: "0.5px solid rgba(60,60,67,0.12)",
+            }}
+          >
+            Decline
+          </button>
+          <button
+            onClick={() => onUpdate(match.id, "approved")}
+            style={{
+              flex: 1, padding: "12px 0", fontSize: 15, fontWeight: 600,
+              color: "#34C759", textAlign: "center", background: "transparent",
+              border: "none", cursor: "pointer",
+            }}
+          >
+            Approve
+          </button>
+        </div>
+      )}
     </div>
   );
 }

@@ -9,23 +9,23 @@ interface AvatarProps {
   className?: string;
 }
 
-const colors = [
-  "bg-blue-500",
-  "bg-green-500",
-  "bg-purple-500",
-  "bg-orange-500",
-  "bg-pink-500",
-  "bg-teal-500",
-  "bg-indigo-500",
-  "bg-rose-500",
+const gradients = [
+  "linear-gradient(135deg, #007AFF, #5856D6)",
+  "linear-gradient(135deg, #34C759, #30D158)",
+  "linear-gradient(135deg, #FF9500, #FF6B00)",
+  "linear-gradient(135deg, #AF52DE, #DA3EF5)",
+  "linear-gradient(135deg, #FF3B30, #FF6259)",
+  "linear-gradient(135deg, #5AC8FA, #007AFF)",
+  "linear-gradient(135deg, #FF2D55, #FF6482)",
+  "linear-gradient(135deg, #FFD60A, #FF9F0A)",
 ];
 
-function getColor(initials: string): string {
-  const index = (initials.charCodeAt(0) + (initials.charCodeAt(1) || 0)) % colors.length;
-  return colors[index];
+function getGradient(initials: string): string {
+  const code = (initials.charCodeAt(0) + (initials.charCodeAt(1) || 0)) % gradients.length;
+  return gradients[code];
 }
 
-export default function Avatar({ src, initials, size = 44, className = "" }: AvatarProps) {
+export default function Avatar({ src, initials, size = 40, className = "" }: AvatarProps) {
   if (src) {
     return (
       <div
@@ -45,10 +45,21 @@ export default function Avatar({ src, initials, size = 44, className = "" }: Ava
 
   return (
     <div
-      className={`rounded-full flex items-center justify-center flex-shrink-0 ${getColor(initials)} ${className}`}
-      style={{ width: size, height: size }}
+      className={`rounded-full flex items-center justify-center flex-shrink-0 ${className}`}
+      style={{
+        width: size,
+        height: size,
+        background: getGradient(initials),
+      }}
     >
-      <span className="text-white font-medium" style={{ fontSize: size * 0.38 }}>
+      <span
+        style={{
+          color: "#fff",
+          fontSize: size * 0.38,
+          fontWeight: 500,
+          letterSpacing: "-0.2px",
+        }}
+      >
         {initials}
       </span>
     </div>

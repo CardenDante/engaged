@@ -4,7 +4,6 @@ import { useState, useEffect, useCallback } from "react";
 import Link from "next/link";
 import BottomNav from "@/components/BottomNav";
 import Avatar from "@/components/Avatar";
-import StatusBadge from "@/components/StatusBadge";
 import { calculateAge, getInitials } from "@/lib/utils";
 
 interface Youth {
@@ -14,7 +13,6 @@ interface Youth {
   gender: string;
   dateOfBirth: string;
   branch: string;
-  phone?: string;
   photoUrl?: string;
   status: string;
 }
@@ -22,196 +20,226 @@ interface Youth {
 export default function HomePage() {
   const [youth, setYouth] = useState<Youth[]>([]);
   const [search, setSearch] = useState("");
-  const [filter, setFilter] = useState<"all" | "male" | "female">("all");
-  const [statusFilter, setStatusFilter] = useState("active");
+  const [genderFilter, setGenderFilter] = useState<"all" | "male" | "female">("all");
   const [loading, setLoading] = useState(true);
 
   const fetchYouth = useCallback(async () => {
     setLoading(true);
     const params = new URLSearchParams();
     if (search) params.set("search", search);
-    if (filter !== "all") params.set("gender", filter);
-    if (statusFilter !== "all") params.set("status", statusFilter);
-
+    if (genderFilter !== "all") params.set("gender", genderFilter);
+    params.set("status", "active");
     const res = await fetch(`/api/youth?${params}`);
     const data = await res.json();
     setYouth(data);
     setLoading(false);
-  }, [search, filter, statusFilter]);
+  }, [search, genderFilter]);
 
   useEffect(() => {
     fetchYouth();
   }, [fetchYouth]);
 
-  // Group by first letter of last name
+  // Group alphabetically by last name
   const grouped = youth.reduce<Record<string, Youth[]>>((acc, y) => {
     const letter = y.lastName.charAt(0).toUpperCase();
     if (!acc[letter]) acc[letter] = [];
     acc[letter].push(y);
     return acc;
   }, {});
-
-  const sortedLetters = Object.keys(grouped).sort();
+  const letters = Object.keys(grouped).sort();
 
   return (
-    <div className="pb-20">
-      {/* iOS-style header */}
-      <div className="sticky top-0 z-40 bg-ios-bg/80 backdrop-blur-xl">
-        <div className="px-4 pt-12 pb-1">
-          <h1 className="text-[34px] font-bold text-ios-label tracking-tight">
-            Youth
-          </h1>
-          <p className="text-[13px] text-ios-gray mt-0.5">
-            {youth.length} enrolled member{youth.length !== 1 ? "s" : ""}
-          </p>
+    <div className="min-h-screen" style={{ paddingBottom: 90 }}>
+      {/* --- iOS Large Title Nav --- */}
+      <div
+        className="sticky top-0 z-40"
+        style={{
+          background: "rgba(242, 242, 247, 0.94)",
+          backdropFilter: "saturate(180%) blur(20px)",
+          WebkitBackdropFilter: "saturate(180%) blur(20px)",
+        }}
+      >
+        {/* Status bar spacer */}
+        <div style={{ height: 54 }} />
+
+        {/* Large title */}
+        <div style={{ padding: "0 16px 6px" }}>
+          <h1 className="ios-large-title">Youth</h1>
         </div>
 
         {/* Search bar */}
-        <div className="px-4 py-2">
+        <div style={{ padding: "0 16px 10px" }}>
           <div className="relative">
             <svg
-              className="absolute left-3 top-1/2 -translate-y-1/2 text-ios-gray"
-              width="16"
-              height="16"
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
-              strokeWidth="2"
-              strokeLinecap="round"
-              strokeLinejoin="round"
+              style={{ position: "absolute", left: 10, top: "50%", transform: "translateY(-50%)" }}
+              width="15" height="15" viewBox="0 0 24 24" fill="none"
+              stroke="rgba(60,60,67,0.3)" strokeWidth="2.5" strokeLinecap="round"
             >
-              <circle cx="11" cy="11" r="8" />
-              <line x1="21" y1="21" x2="16.65" y2="16.65" />
+              <circle cx="11" cy="11" r="7" />
+              <line x1="21" y1="21" x2="16" y2="16" />
             </svg>
             <input
               type="text"
               placeholder="Search"
               value={search}
               onChange={(e) => setSearch(e.target.value)}
-              className="w-full bg-gray-200/60 rounded-xl pl-9 pr-4 py-2 text-[15px] text-ios-label placeholder-ios-gray outline-none focus:ring-2 focus:ring-ios-blue/30 transition-all"
+              className="ios-search"
             />
           </div>
         </div>
 
-        {/* Filter pills */}
-        <div className="px-4 pb-2 flex gap-2 overflow-x-auto no-scrollbar">
-          {(["all", "male", "female"] as const).map((g) => (
-            <button
-              key={g}
-              onClick={() => setFilter(g)}
-              className={`px-4 py-1.5 rounded-full text-[13px] font-medium whitespace-nowrap transition-all ${
-                filter === g
-                  ? "bg-ios-blue text-white"
-                  : "bg-gray-200/60 text-ios-secondary"
-              }`}
-            >
-              {g === "all" ? "All" : g === "male" ? "Male" : "Female"}
-            </button>
-          ))}
-          <div className="w-px h-6 bg-ios-separator self-center mx-1" />
-          {(["active", "all", "matched", "disabled"] as const).map((s) => (
-            <button
-              key={s}
-              onClick={() => setStatusFilter(s)}
-              className={`px-4 py-1.5 rounded-full text-[13px] font-medium whitespace-nowrap transition-all ${
-                statusFilter === s
-                  ? "bg-ios-blue text-white"
-                  : "bg-gray-200/60 text-ios-secondary"
-              }`}
-            >
-              {s.charAt(0).toUpperCase() + s.slice(1)}
-            </button>
-          ))}
+        {/* Segmented control for gender filter */}
+        <div style={{ padding: "0 16px 10px" }}>
+          <div className="ios-segmented">
+            {(["all", "male", "female"] as const).map((g) => (
+              <button
+                key={g}
+                className={genderFilter === g ? "active" : ""}
+                onClick={() => setGenderFilter(g)}
+              >
+                {g === "all" ? "All" : g === "male" ? "Male" : "Female"}
+              </button>
+            ))}
+          </div>
         </div>
       </div>
 
-      {/* Youth list - iOS contact list style */}
+      {/* --- Content --- */}
       {loading ? (
-        <div className="flex items-center justify-center py-20">
-          <div className="w-8 h-8 border-2 border-ios-blue border-t-transparent rounded-full animate-spin" />
+        <div style={{ display: "flex", justifyContent: "center", paddingTop: 80 }}>
+          <div
+            style={{
+              width: 20, height: 20,
+              border: "2.5px solid rgba(0,0,0,0.08)",
+              borderTopColor: "#007AFF",
+              borderRadius: "50%",
+              animation: "spin 0.6s linear infinite",
+            }}
+          />
+          <style>{`@keyframes spin { to { transform: rotate(360deg); } }`}</style>
         </div>
       ) : youth.length === 0 ? (
-        <div className="flex flex-col items-center justify-center py-20 px-4 text-center">
-          <div className="w-16 h-16 rounded-full bg-gray-200 flex items-center justify-center mb-4">
-            <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="#8E8E93" strokeWidth="1.5">
-              <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2" />
-              <circle cx="9" cy="7" r="4" />
+        <div style={{ textAlign: "center", paddingTop: 80 }}>
+          <div
+            style={{
+              width: 60, height: 60, borderRadius: "50%",
+              background: "rgba(118,118,128,0.12)",
+              display: "inline-flex", alignItems: "center", justifyContent: "center",
+              marginBottom: 16,
+            }}
+          >
+            <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="rgba(60,60,67,0.3)" strokeWidth="1.6">
+              <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" />
+              <circle cx="12" cy="7" r="4" />
             </svg>
           </div>
-          <p className="text-ios-gray text-[15px]">No youth enrolled yet</p>
-          <Link
-            href="/add"
-            className="mt-4 text-ios-blue text-[15px] font-medium"
-          >
-            Enroll First Youth
+          <p style={{ fontSize: 17, color: "rgba(60,60,67,0.6)" }}>No Youth Enrolled</p>
+          <Link href="/add" style={{ fontSize: 17, color: "#007AFF", display: "inline-block", marginTop: 8 }}>
+            Add First Youth
           </Link>
         </div>
       ) : (
-        <div>
-          {sortedLetters.map((letter) => (
+        <>
+          {/* Contacts count */}
+          <div style={{ padding: "4px 16px 0", fontSize: 13, color: "rgba(60,60,67,0.6)" }}>
+            {youth.length} contact{youth.length !== 1 ? "s" : ""}
+          </div>
+
+          {letters.map((letter) => (
             <div key={letter}>
-              {/* Section header */}
-              <div className="px-4 py-1 bg-ios-bg sticky top-[185px] z-30">
-                <span className="text-[13px] font-semibold text-ios-secondary">
-                  {letter}
-                </span>
+              {/* Section letter */}
+              <div
+                style={{
+                  padding: "4px 16px",
+                  fontSize: 13,
+                  fontWeight: 600,
+                  color: "rgba(60,60,67,0.6)",
+                  background: "#f2f2f7",
+                  position: "sticky",
+                  top: 198,
+                  zIndex: 30,
+                }}
+              >
+                {letter}
               </div>
 
-              {/* Contact rows */}
-              <div className="bg-white">
-                {grouped[letter].map((person, idx) => (
-                  <Link
-                    key={person.id}
-                    href={`/youth/${person.id}`}
-                    className="flex items-center px-4 py-2.5 active:bg-gray-100 transition-colors"
-                  >
-                    <Avatar
-                      src={person.photoUrl}
-                      initials={getInitials(person.firstName, person.lastName)}
-                      size={44}
-                    />
-                    <div
-                      className={`flex-1 ml-3 py-1 ${
-                        idx < grouped[letter].length - 1
-                          ? "border-b border-ios-separator/40"
-                          : ""
-                      }`}
+              {/* Rows */}
+              <div style={{ background: "#fff" }}>
+                {grouped[letter].map((person, idx) => {
+                  const isLast = idx === grouped[letter].length - 1;
+                  return (
+                    <Link
+                      key={person.id}
+                      href={`/youth/${person.id}`}
+                      style={{ display: "flex", alignItems: "center", textDecoration: "none", color: "inherit" }}
                     >
-                      <div className="flex items-center justify-between">
-                        <div>
-                          <p className="text-[16px] font-normal text-ios-label">
-                            {person.firstName} {person.lastName}
-                          </p>
-                          <p className="text-[13px] text-ios-gray mt-0.5">
-                            {calculateAge(new Date(person.dateOfBirth))} yrs &middot;{" "}
-                            {person.branch}
-                          </p>
-                        </div>
-                        <div className="flex items-center gap-2">
-                          {person.status !== "active" && (
-                            <StatusBadge status={person.status} />
-                          )}
-                          <svg
-                            width="8"
-                            height="13"
-                            viewBox="0 0 8 13"
-                            fill="none"
-                            className="text-ios-separator"
-                          >
-                            <path
-                              d="M1.5 1.5L6.5 6.5L1.5 11.5"
-                              stroke="currentColor"
-                              strokeWidth="2"
-                              strokeLinecap="round"
-                              strokeLinejoin="round"
-                            />
-                          </svg>
-                        </div>
+                      <div style={{ paddingLeft: 16, paddingRight: 0 }}>
+                        <Avatar
+                          src={person.photoUrl}
+                          initials={getInitials(person.firstName, person.lastName)}
+                          size={40}
+                        />
                       </div>
-                    </div>
-                  </Link>
-                ))}
+                      <div
+                        style={{
+                          flex: 1,
+                          display: "flex",
+                          alignItems: "center",
+                          justifyContent: "space-between",
+                          padding: "12px 16px 12px 12px",
+                          borderBottom: isLast ? "none" : "0.5px solid rgba(60,60,67,0.12)",
+                          marginLeft: 0,
+                          minHeight: 44,
+                        }}
+                      >
+                        <div>
+                          <div style={{ fontSize: 17, color: "#000", lineHeight: "22px" }}>
+                            {person.firstName} {person.lastName}
+                          </div>
+                          <div style={{ fontSize: 13, color: "rgba(60,60,67,0.6)", marginTop: 1, lineHeight: "18px" }}>
+                            {calculateAge(new Date(person.dateOfBirth))} yrs · {person.branch}
+                          </div>
+                        </div>
+                        <svg width="7" height="12" viewBox="0 0 7 12" fill="none">
+                          <path d="M1 1l5 5-5 5" stroke="rgba(60,60,67,0.3)" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+                        </svg>
+                      </div>
+                    </Link>
+                  );
+                })}
               </div>
+            </div>
+          ))}
+        </>
+      )}
+
+      {/* Alphabet sidebar - iOS style */}
+      {letters.length > 3 && (
+        <div
+          style={{
+            position: "fixed",
+            right: 2,
+            top: "50%",
+            transform: "translateY(-50%)",
+            display: "flex",
+            flexDirection: "column",
+            alignItems: "center",
+            zIndex: 35,
+            padding: "4px 0",
+          }}
+        >
+          {letters.map((l) => (
+            <div
+              key={l}
+              style={{
+                fontSize: 10,
+                fontWeight: 600,
+                color: "#007AFF",
+                lineHeight: "14px",
+                padding: "0 4px",
+              }}
+            >
+              {l}
             </div>
           ))}
         </div>
