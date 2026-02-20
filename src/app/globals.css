@@ -1,0 +1,50 @@
+@import "tailwindcss";
+
+@theme {
+  --font-roboto: "Roboto", system-ui, sans-serif;
+  --color-ios-bg: #f2f2f7;
+  --color-ios-card: #ffffff;
+  --color-ios-separator: #c6c6c8;
+  --color-ios-blue: #007aff;
+  --color-ios-green: #34c759;
+  --color-ios-red: #ff3b30;
+  --color-ios-orange: #ff9500;
+  --color-ios-gray: #8e8e93;
+  --color-ios-label: #000000;
+  --color-ios-secondary: #3c3c43;
+  --color-ios-tertiary: #48484a;
+  --color-ios-grouped-bg: #f2f2f7;
+}
+
+* {
+  -webkit-tap-highlight-color: transparent;
+}
+
+body {
+  font-family: var(--font-roboto);
+  background-color: var(--color-ios-bg);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+/* iOS-style scrollbar */
+::-webkit-scrollbar {
+  width: 0px;
+  background: transparent;
+}
+
+/* iOS-style safe area */
+.safe-area-bottom {
+  padding-bottom: env(safe-area-inset-bottom, 20px);
+}
+
+/* Smooth page transitions */
+.page-enter {
+  opacity: 0;
+  transform: translateX(20px);
+}
+.page-enter-active {
+  opacity: 1;
+  transform: translateX(0);
+  transition: all 0.3s ease;
+}
