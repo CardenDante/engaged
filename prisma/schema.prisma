@@ -1,0 +1,53 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+model Youth {
+  id          String   @id @default(cuid())
+  firstName   String
+  lastName    String
+  gender      String   // "male" or "female"
+  dateOfBirth DateTime
+  phone       String?
+  email       String?
+  branch      String   // branch church name
+  occupation  String?
+  bio         String?
+  photoUrl    String?
+  status      String   @default("active") // "active", "matched", "married", "disabled"
+  registeredBy String  // elder/pastor who registered
+
+  // Matching preference fields
+  interests      String?  // comma-separated: "music,cooking,sports,reading"
+  educationLevel String?  // "high_school", "diploma", "bachelors", "masters", "doctorate"
+  minAgePref     Int?     // minimum preferred partner age
+  maxAgePref     Int?     // maximum preferred partner age
+  branchPref     String   @default("any") // "same" or "any"
+  fellowship     String?  // years in church: "1", "2-3", "4-5", "6+"
+
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  matchesMale   Match[] @relation("MaleMatch")
+  matchesFemale Match[] @relation("FemaleMatch")
+}
+
+model Match {
+  id        String   @id @default(cuid())
+  maleId    String
+  femaleId  String
+  score     Int      // compatibility score 0-100
+  breakdown String?  // JSON string of score breakdown
+  status    String   @default("suggested") // "suggested", "approved", "rejected"
+  createdAt DateTime @default(now())
+
+  male   Youth @relation("MaleMatch", fields: [maleId], references: [id])
+  female Youth @relation("FemaleMatch", fields: [femaleId], references: [id])
+
+  @@unique([maleId, femaleId])
+}
