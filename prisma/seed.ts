@@ -146,7 +146,7 @@ function generateYouth(gender: "male" | "female", index: number): YouthSeed {
 }
 
 async function main() {
-  console.log("Seeding 67 youth records...");
+  console.log("Seeding 97 youth records...");
 
   // Clear existing data
   await prisma.match.deleteMany();
@@ -154,13 +154,13 @@ async function main() {
 
   const youths: YouthSeed[] = [];
 
-  // 35 males
-  for (let i = 0; i < 35; i++) {
+  // 50 males
+  for (let i = 0; i < 50; i++) {
     youths.push(generateYouth("male", i));
   }
 
-  // 32 females
-  for (let i = 0; i < 32; i++) {
+  // 47 females
+  for (let i = 0; i < 47; i++) {
     youths.push(generateYouth("female", i));
   }
 
@@ -168,7 +168,7 @@ async function main() {
     await prisma.youth.create({ data: youth });
   }
 
-  console.log(`Seeded ${youths.length} youth records (35 male, 32 female).`);
+  console.log(`Seeded ${youths.length} youth records (50 male, 47 female).`);
 }
 
 main()
