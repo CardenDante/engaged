@@ -1,0 +1,9 @@
+#!/bin/sh
+set -e
+
+echo "Pushing database schema..."
+node ./node_modules/prisma/build/index.js db push --accept-data-loss
+echo "Schema push complete."
+
+echo "Starting application..."
+exec node server.js
