@@ -1,6 +1,6 @@
 {
-  "name": "Engaged",
-  "short_name": "Engaged",
+  "name": "Singles",
+  "short_name": "Singles",
   "description": "Church youth enrollment system",
   "start_url": "/",
   "display": "standalone",

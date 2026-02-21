@@ -2,13 +2,13 @@ import type { Metadata, Viewport } from "next";
 import "./globals.css";
 
 export const metadata: Metadata = {
-  title: "Engaged",
+  title: "Singles",
   description: "Church youth enrollment system",
   manifest: "/manifest.json",
   appleWebApp: {
     capable: true,
     statusBarStyle: "default",
-    title: "Engaged",
+    title: "Singles",
   },
 };
 
