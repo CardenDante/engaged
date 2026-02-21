@@ -3,7 +3,8 @@ import "./globals.css";
 
 export const metadata: Metadata = {
   title: "Engaged",
-  description: "Church youth enrollment and matching system",
+  description: "Church youth enrollment system",
+  manifest: "/manifest.json",
   appleWebApp: {
     capable: true,
     statusBarStyle: "default",
@@ -32,11 +33,23 @@ export default function RootLayout({
           href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;600;700&display=swap"
           rel="stylesheet"
         />
+        <link rel="apple-touch-icon" href="/icons/icon-192.png" />
       </head>
       <body>
         <main className="mx-auto max-w-[430px] min-h-screen relative">
           {children}
         </main>
+        <script
+          dangerouslySetInnerHTML={{
+            __html: `
+              if ('serviceWorker' in navigator) {
+                window.addEventListener('load', () => {
+                  navigator.serviceWorker.register('/sw.js');
+                });
+              }
+            `,
+          }}
+        />
       </body>
     </html>
   );

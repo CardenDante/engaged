@@ -2,7 +2,6 @@
 
 import { useState, useRef } from "react";
 import { useRouter } from "next/navigation";
-import BottomNav from "@/components/BottomNav";
 import Avatar from "@/components/Avatar";
 import CameraCapture from "@/components/CameraCapture";
 
@@ -123,7 +122,7 @@ export default function AddYouthPage() {
   const set = (k: string, v: string) => setForm((p) => ({ ...p, [k]: v }));
 
   return (
-    <div className="min-h-screen" style={{ paddingBottom: 90 }}>
+    <div className="min-h-screen">
       {/* iOS Nav Bar */}
       <div
         className="sticky top-0 z-40"
@@ -134,7 +133,7 @@ export default function AddYouthPage() {
           borderBottom: "0.5px solid rgba(60,60,67,0.12)",
         }}
       >
-        <div style={{ height: 54 }} />
+        <div style={{ height: 10 }} />
         <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: "0 16px", height: 44 }}>
           <button onClick={() => router.back()} style={{ fontSize: 17, color: "#007AFF", background: "none", border: "none", cursor: "pointer" }}>
             Cancel
@@ -383,7 +382,6 @@ export default function AddYouthPage() {
       </div>
 
       <style>{`@keyframes spin { to { transform: rotate(360deg); } }`}</style>
-      <BottomNav />
     </div>
   );
 }

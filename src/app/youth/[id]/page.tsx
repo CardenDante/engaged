@@ -2,7 +2,6 @@
 
 import { useState, useEffect, use } from "react";
 import { useRouter } from "next/navigation";
-import BottomNav from "@/components/BottomNav";
 import Avatar from "@/components/Avatar";
 import { calculateAge, formatDate, getInitials } from "@/lib/utils";
 
@@ -100,7 +99,7 @@ export default function YouthProfilePage({
   const st = statusStyles[youth.status] || statusStyles.active;
 
   return (
-    <div className="min-h-screen" style={{ paddingBottom: 90 }}>
+    <div className="min-h-screen">
       {/* Nav bar */}
       <div
         className="sticky top-0 z-40"
@@ -111,7 +110,7 @@ export default function YouthProfilePage({
           borderBottom: "0.5px solid rgba(60,60,67,0.12)",
         }}
       >
-        <div style={{ height: 54 }} />
+        <div style={{ height: 10 }} />
         <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: "0 8px", height: 44 }}>
           <button
             onClick={() => router.back()}
@@ -358,7 +357,6 @@ export default function YouthProfilePage({
         </>
       )}
 
-      <BottomNav />
     </div>
   );
 }

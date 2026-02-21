@@ -2,7 +2,6 @@
 
 import { useState, useEffect, useCallback } from "react";
 import Link from "next/link";
-import BottomNav from "@/components/BottomNav";
 import Avatar from "@/components/Avatar";
 import { calculateAge, getInitials } from "@/lib/utils";
 
@@ -49,7 +48,7 @@ export default function HomePage() {
   const letters = Object.keys(grouped).sort();
 
   return (
-    <div className="min-h-screen" style={{ paddingBottom: 90 }}>
+    <div className="min-h-screen">
       {/* --- iOS Large Title Nav --- */}
       <div
         className="sticky top-0 z-40"
@@ -60,11 +59,27 @@ export default function HomePage() {
         }}
       >
         {/* Status bar spacer */}
-        <div style={{ height: 54 }} />
+        <div style={{ height: 10 }} />
 
-        {/* Large title */}
-        <div style={{ padding: "0 16px 6px" }}>
+        {/* Large title + Add button */}
+        <div style={{ padding: "0 16px 6px", display: "flex", alignItems: "flex-end", justifyContent: "space-between" }}>
           <h1 className="ios-large-title">Youth</h1>
+          <Link
+            href="/add"
+            style={{
+              fontSize: 15, fontWeight: 600, color: "#fff",
+              background: "#007AFF",
+              border: "none", borderRadius: 100, padding: "8px 18px",
+              display: "flex", alignItems: "center", gap: 5,
+              textDecoration: "none", marginBottom: 4,
+            }}
+          >
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#fff" strokeWidth="2.5" strokeLinecap="round">
+              <line x1="12" y1="5" x2="12" y2="19" />
+              <line x1="5" y1="12" x2="19" y2="12" />
+            </svg>
+            Add
+          </Link>
         </div>
 
         {/* Search bar */}
@@ -156,7 +171,7 @@ export default function HomePage() {
                   color: "rgba(60,60,67,0.6)",
                   background: "#f2f2f7",
                   position: "sticky",
-                  top: 198,
+                  top: 154,
                   zIndex: 30,
                 }}
               >
@@ -213,39 +228,6 @@ export default function HomePage() {
         </>
       )}
 
-      {/* Alphabet sidebar - iOS style */}
-      {letters.length > 3 && (
-        <div
-          style={{
-            position: "fixed",
-            right: 2,
-            top: "50%",
-            transform: "translateY(-50%)",
-            display: "flex",
-            flexDirection: "column",
-            alignItems: "center",
-            zIndex: 35,
-            padding: "4px 0",
-          }}
-        >
-          {letters.map((l) => (
-            <div
-              key={l}
-              style={{
-                fontSize: 10,
-                fontWeight: 600,
-                color: "#007AFF",
-                lineHeight: "14px",
-                padding: "0 4px",
-              }}
-            >
-              {l}
-            </div>
-          ))}
-        </div>
-      )}
-
-      <BottomNav />
     </div>
   );
 }
