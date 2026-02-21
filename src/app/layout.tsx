@@ -1,4 +1,5 @@
 import type { Metadata, Viewport } from "next";
+import InstallBanner from "@/components/InstallBanner";
 import "./globals.css";
 
 export const metadata: Metadata = {
@@ -38,6 +39,7 @@ export default function RootLayout({
       <body>
         <main className="mx-auto max-w-[430px] min-h-screen relative">
           {children}
+          <InstallBanner />
         </main>
         <script
           dangerouslySetInnerHTML={{
