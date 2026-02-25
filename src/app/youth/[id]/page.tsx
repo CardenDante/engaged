@@ -59,12 +59,17 @@ export default function YouthProfilePage({
   const router = useRouter();
   const [youth, setYouth] = useState<Youth | null>(null);
   const [loading, setLoading] = useState(true);
-  const [showSheet, setShowSheet] = useState(false);
 
   useEffect(() => {
-    fetch(`/api/youth/${id}`)
-      .then((r) => r.json())
-      .then((d) => { setYouth(d); setLoading(false); });
+    const fetchYouth = () => {
+      fetch(`/api/youth/${id}`)
+        .then((r) => r.json())
+        .then((d) => { setYouth(d); setLoading(false); });
+    };
+    fetchYouth();
+    const onFocus = () => fetchYouth();
+    window.addEventListener("focus", onFocus);
+    return () => window.removeEventListener("focus", onFocus);
   }, [id]);
 
   const updateStatus = async (status: string) => {
@@ -74,7 +79,6 @@ export default function YouthProfilePage({
       body: JSON.stringify({ status }),
     });
     if (res.ok) setYouth(await res.json());
-    setShowSheet(false);
   };
 
   if (loading) {
@@ -122,7 +126,7 @@ export default function YouthProfilePage({
             Youth
           </button>
           <button
-            onClick={() => setShowSheet(true)}
+            onClick={() => router.push(`/youth/${id}/edit`)}
             style={{ fontSize: 17, color: "#007AFF", background: "none", border: "none", cursor: "pointer", padding: "0 8px" }}
           >
             Edit
@@ -304,58 +308,6 @@ export default function YouthProfilePage({
         )}
       </div>
 
-      {/* iOS Action Sheet */}
-      {showSheet && (
-        <>
-          <div
-            onClick={() => setShowSheet(false)}
-            style={{ position: "fixed", inset: 0, background: "rgba(0,0,0,0.4)", zIndex: 100 }}
-          />
-          <div
-            style={{
-              position: "fixed", bottom: 0, left: "50%", transform: "translateX(-50%)",
-              width: "100%", maxWidth: 430, zIndex: 101,
-              padding: "0 8px env(safe-area-inset-bottom, 8px) 8px",
-            }}
-          >
-            {/* Main sheet */}
-            <div style={{ background: "rgba(249,249,249,0.94)", backdropFilter: "blur(40px)", borderRadius: 14, overflow: "hidden", marginBottom: 8 }}>
-              <div style={{ padding: "14px 16px 6px", textAlign: "center" }}>
-                <p style={{ fontSize: 13, color: "rgba(60,60,67,0.6)", fontWeight: 600 }}>Update Status</p>
-              </div>
-              {["active", "matched", "married", "disabled"].map((s, i) => (
-                <button
-                  key={s}
-                  onClick={() => updateStatus(s)}
-                  style={{
-                    width: "100%", padding: "16px", fontSize: 20,
-                    color: youth.status === s ? "#007AFF" : "#007AFF",
-                    fontWeight: youth.status === s ? 600 : 400,
-                    textAlign: "center", background: "transparent", border: "none",
-                    borderTop: i > 0 ? "0.5px solid rgba(60,60,67,0.12)" : "none",
-                    cursor: "pointer",
-                  }}
-                >
-                  {statusStyles[s]?.label || s}{youth.status === s ? " ✓" : ""}
-                </button>
-              ))}
-            </div>
-            {/* Cancel button */}
-            <div style={{ background: "#fff", borderRadius: 14, overflow: "hidden" }}>
-              <button
-                onClick={() => setShowSheet(false)}
-                style={{
-                  width: "100%", padding: "16px", fontSize: 20, fontWeight: 600,
-                  color: "#007AFF", textAlign: "center", background: "transparent",
-                  border: "none", cursor: "pointer",
-                }}
-              >
-                Cancel
-              </button>
-            </div>
-          </div>
-        </>
-      )}
 
     </div>
   );
