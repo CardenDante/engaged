@@ -1,5 +1,6 @@
 import type { Metadata, Viewport } from "next";
 import InstallBanner from "@/components/InstallBanner";
+import ServiceWorkerRegistration from "@/components/ServiceWorkerRegistration";
 import "./globals.css";
 
 export const metadata: Metadata = {
@@ -37,21 +38,11 @@ export default function RootLayout({
         <link rel="apple-touch-icon" href="/icons/icon-192.png" />
       </head>
       <body>
+        <ServiceWorkerRegistration />
         <main className="mx-auto max-w-[430px] min-h-screen relative">
           {children}
           <InstallBanner />
         </main>
-        <script
-          dangerouslySetInnerHTML={{
-            __html: `
-              if ('serviceWorker' in navigator) {
-                window.addEventListener('load', () => {
-                  navigator.serviceWorker.register('/sw.js');
-                });
-              }
-            `,
-          }}
-        />
       </body>
     </html>
   );
